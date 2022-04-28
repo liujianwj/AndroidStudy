@@ -101,3 +101,40 @@ https://github.com/square/leakcanary
 #### 9. 使用ListView时造成的内存泄漏
 
    在构造Adapter时，使用缓存的convertView。
+
+
+
+
+
+Java: Memory from objects allocated from Java or Kotlin code.【Java内存区域，主要是对象和Bitmap】
+
+Native: Memory from objects allocated from C or C++ code.【C相关】
+
+Stack: Memory used by both native and Java stacks in your app. This usually relates to how many threads your app is running.【这是一些方法栈和线程占用的区域】
+
+Code: 就是写代码库.so等等；
+
+Other: Memory used by your app that the system isn't sure how to categorize.【系统也不确定是个啥】
+
+**Graphics: Memory used for graphics buffer queues to display pixels to the screen, including GL surfaces, GL textures, and so on. (Note that this is memory shared with the CPU, not dedicated GPU memory.)【像素图像图形渲染我的理解，这是之前我们没见过的】**
+
+
+
+Memory Profile 
+
+![image-20220323163411504](/Users/liujian/Documents/study/books/AndroidStudy/图片/image-20220323163411504.png)
+
+Java表示Java代码或Kotlin代码分配的内存；
+
+Native表示C或C++代码分配的内存(即使App没有native层，调用framework代码时，也有可能触发分配native内存)；
+
+Graphics表示图像相关缓存队列占用的内存；
+
+Stack表示native和java占用的栈内存；
+
+Code表示代码、资源文件、库文件等占用的内存；
+
+Others表示无法明确分类的内存；
+
+Allocated表示Java或Kotlin分配对象的数量(Android8.0以下时，仅统计Memory Profiler启动后，进程再分配的对象数量； 
+8.0以上时，由于系统内置了统计工具，Memory Profiler可以得到整个app启动后分配对象的数量)。

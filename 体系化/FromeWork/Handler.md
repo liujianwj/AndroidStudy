@@ -403,3 +403,57 @@ postCallback() 最终走到了 Choreographer#postCallbackDelayedInternal() ：�
 小结
 
 同步屏障的设置可以方便地处理那些优先级较高的异步消息。当我们调用Handler.getLooper().getQueue().postSyncBarrier() 并设置消息的 setAsynchronous(true) 时，target 即 为 null ，也就开启了同步屏障。当在消息轮询器 Looper 在 loop() 中循环处理消息时，如若开启了同步屏障，会优先处理其中的异步消息，而阻碍同步消息。
+
+
+
+### HandlerThread
+
+> 继承Thread，在run 中自己就完成了Looper.perpare()，Looper.loop()操作，，用户只需创建HandlerThread，然后start启动，，后续通过获取其looper，利用handler发送消息，这样消息处理都在子线程中执行了。
+>
+> 优势：使用简单，线程安全：注意其run()、getLooper()中都加了synchronized(this)
+>
+> ```java
+> public void run() {
+>         mTid = Process.myTid();
+>         Looper.prepare();
+>         synchronized (this) {
+>             mLooper = Looper.myLooper();
+>             //mLooper创建成功，唤醒，
+>             notifyAll();
+>         }
+>         Process.setThreadPriority(mPriority);
+>         onLooperPrepared();
+>         Looper.loop();
+>         mTid = -1;
+>  }
+> 
+> public Looper getLooper() {
+>         //先判断线程是否已经启动
+>         if (!isAlive()) {
+>             return null;
+>         }
+>         
+>         // If the thread has been started, wait until the looper has been created.
+>         synchronized (this) {
+>             //如果此时mLooper还没创建成功，则wait等待，当有notifyAll调用后，wait处不会马上获取执行权力，只是具备了争夺锁的权力，不在等待
+>             while (isAlive() && mLooper == null) {
+>                 try {
+>                     wait();
+>                 } catch (InterruptedException e) {
+>                 }
+>             }
+>         }
+>         return mLooper;
+> }
+> ```
+>
+> 使用场景：我们知道，HandlerThread 所做的就是在新开的子线程中创建了 Looper，那它的使用场景就是 Thread + Looper 使用场景的结合，即：**在子线程中执行耗时的、可能有多个任务的操作**。比如说多个网络请求操作，或者多文件 I/O 等等。
+>
+> 使用 HandlerThread 的典型例子就是 `IntentService`
+
+### IntentService
+
+IntentService是继承并处理异步请求的一个类，在IntentService内有一个工作线程来处理耗时操作，启动IntentService的方式和启动传统的Service一样，同时，当任务执行完后，IntentService会自动停止，而不需要我们手动去控制或stopSelf()。另外，可以启动IntentService多次，而每一个耗时操作会以工作队列的方式在IntentService的onHandleIntent回调方法中执行，并且，每次只会执行一个工作线程，执行完第一个再执行第二个，以此类推。
+
+场景：在Android开发中，我们或许会碰到这么一种业务需求，一项任务分成几个子任务，子任务按顺序先后执行，子任务全部执行完后，这项任务才算成功。那么，利用几个子线程顺序执行是可以达到这个目的的，但是每个线程必须去手动控制，而且得在一个子线程执行完后，再开启另一个子线程。或者，全部放到一个线程中让其顺序执行。这样都可以做到，但是，如果这是一个后台任务，就得放到Service里面，由于Service和Activity是同级的，所以，要执行耗时任务，就得在Service里面开子线程来执行。那么，有没有一种简单的方法来处理这个过程呢，答案就是IntentService。
+

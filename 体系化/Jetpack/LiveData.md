@@ -187,7 +187,7 @@ private void considerNotify(ObserverWrapper observer) {
 
 
 
-#### postValue连续调用，前面的事件可能会丢失问题
+#### postValue连续调用，前面的事件可能会丢失问题（背压）
 
 看postValue源码：
 
@@ -222,3 +222,21 @@ private final Runnable mPostValueRunnable = new Runnable() {
 
 根据源码我们可以知道主要是mPendingData标志位的原因，mPendingData在初始时，以及Runnable执行时，会被置回NOT_SET，这样在postValue时，可以发送消息，发送的时候会将value设置给mPendingData，所以在前一个消息没处理的时候，后一个消息进来直接return，而newValue = mPendingData，消息每次进来会mPendingData = value，这样newValue就被后面的消息覆盖了，所以说Runnable是执行的前面的，但是newValue使用的时候最后的。
 
+
+
+
+
+
+
+
+
+
+
+
+
+流程：
+
+1. 添加观察者流程，，有两种方式，一种是跟lifecycle生命周期绑定，一种是无生命周期绑定。一般我们是使用与生命周期绑定的。新建livedata后，通过observer添加观察者，会先进行一层lifecycleboundObserver包裹，lifecycleboundObserver是基础lifecycleeventObsever的，后面会将它添加进lifecycer owner进行绑定，后面监听生命周期事件。前面包裹完，会放入到obsers集合中，后面通过setvalue时去遍历obsers分发事件。
+2. 分发流程，主要会检查当前的生命周期状态是否处于active（对应的是started/resumed）,如果是的话，则对比版本号，如果观察者的版本号小于被观察者即livedata本事的版本号时，才会真正执行观察者的方法，同时会将版本号同步。
+3. 注意的点：1、在setvalue时livedata（被观察者的版本号会++），2、观察者继承licyclerobser，用于感知生命周期的能力，会在destroy的时候，将监听移除，，在active 状态的时候也会去尝试分发事件
+4. activity/view/window，，，activity生命周期回调的，给开发者使用，view是负责承载绘制信息的，window是窗口，负责渲染

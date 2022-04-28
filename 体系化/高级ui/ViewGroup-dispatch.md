@@ -189,7 +189,7 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
                 while (target != null) {
                     // 单指操作 next = null
                     final TouchTarget next = target.next;
-                    // if命中，直接返回 handle，不作处理
+                    // if命中，直接返回 handle，不作处理，这里是前面寻找到了child
                     if (alreadyDispatchedToNewTouchTarget && target == newTouchTarget) {
                         handled = true;
                     } else {

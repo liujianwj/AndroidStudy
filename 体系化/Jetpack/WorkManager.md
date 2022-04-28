@@ -31,7 +31,7 @@ class MainWorker1(context: Context, workerParameters: WorkerParameters) : Worker
             Log.d(TAG, "MainWorker1 doWork: run end ... ")
         }
         return Result.success(); // 本次任务成功
-    }
+ }
 }
 
 /**

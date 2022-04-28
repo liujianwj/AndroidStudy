@@ -88,7 +88,7 @@ Recycler.getViewForPosition
 
 <img src="/Users/liujian/Documents/study/books/AndroidStudy/图片/WeChat2483378a774f8453ea7a3229c5b421dc.png" alt="WeChat2483378a774f8453ea7a3229c5b421dc" style="zoom: 33%;" />
 
-##### 分割线ItemDecortaion（以绘制类似城市列表，顶部吸顶效果为例）
+##### 分割线ItemDecoration（以绘制类似城市列表，顶部吸顶效果为例）
 
 自定义分割线，继承ItemDecortaion，一般需要重写一下几个方法：
 
@@ -483,6 +483,94 @@ https://blog.csdn.net/smileiam/article/details/88396546
   mRecyclerView3.setRecycledViewPool(mPool);
   ```
 
-- DiffUtil
+- DiffUtil https://blog.csdn.net/zxt0601/article/details/52562770
+
+  > 使用DiffUtil后，改为如下代码：
+  >
+  > ```java
+  > //利用DiffUtil.calculateDiff()方法，传入一个规则DiffUtil.Callback对象，和是否检测移动item的 boolean变量，得到DiffUtil.DiffResult 的对象
+  > DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffCallBack(mDatas, newDatas), true);
+  > //利用DiffUtil.DiffResult对象的dispatchUpdatesTo（）方法，传入RecyclerView的Adapter，轻松成为文艺青年
+  > diffResult.dispatchUpdatesTo(mAdapter);
+  > 
+  > //别忘了将新数据给Adapter
+  > mDatas = newDatas;
+  > mAdapter.setDatas(mDatas);
+  > ```
+  >
+  > 
+  >
+  > 它会自动计算新老数据集的差异，并根据差异情况，自动调用以下四个方法
+  >
+  > adapter.notifyItemRangeInserted(position, count);
+  > adapter.notifyItemRangeRemoved(position, count);
+  > adapter.notifyItemMoved(fromPosition, toPosition);
+  > adapter.notifyItemRangeChanged(position, count, payload);
+  >
+  > ```java
+  > /**
+  >  * 介绍：核心类 用来判断 新旧Item是否相等
+  >  * 作者：zhangxutong
+  >  * 邮箱：zhangxutong@imcoming.com
+  >  * 时间： 2016/9/12.
+  >  */
+  > 
+  > public class DiffCallBack extends DiffUtil.Callback {
+  >     private List<TestBean> mOldDatas, mNewDatas;//看名字
+  > 
+  >     public DiffCallBack(List<TestBean> mOldDatas, List<TestBean> mNewDatas) {
+  >         this.mOldDatas = mOldDatas;
+  >         this.mNewDatas = mNewDatas;
+  >     }
+  > 
+  >     //老数据集size
+  >     @Override
+  >     public int getOldListSize() {
+  >         return mOldDatas != null ? mOldDatas.size() : 0;
+  >     }
+  > 
+  >     //新数据集size
+  >     @Override
+  >     public int getNewListSize() {
+  >         return mNewDatas != null ? mNewDatas.size() : 0;
+  >     }
+  > 
+  >     /**
+  >      * 被DiffUtil调用，用来判断 两个对象是否是相同的Item。
+  >      * 例如，如果你的Item有唯一的id字段，这个方法就 判断id是否相等。
+  >      * 本例判断name字段是否一致
+  >      */
+  >     @Override
+  >     public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+  >         return mOldDatas.get(oldItemPosition).getName().equals(mNewDatas.get(newItemPosition).getName());
+  >     }
+  > 
+  >     /**
+  >      * 被DiffUtil调用，用来检查 两个item是否含有相同的数据
+  >      * DiffUtil用返回的信息（true false）来检测当前item的内容是否发生了变化
+  >      * DiffUtil 用这个方法替代equals方法去检查是否相等。
+  >      * 所以你可以根据你的UI去改变它的返回值
+  >      * 例如，如果你用RecyclerView.Adapter 配合DiffUtil使用，你需要返回Item的视觉表现是否相同。
+  >      * 这个方法仅仅在areItemsTheSame()返回true时，才调用。
+  >      */
+  >     @Override
+  >     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+  >         TestBean beanOld = mOldDatas.get(oldItemPosition);
+  >         TestBean beanNew = mNewDatas.get(newItemPosition);
+  >         if (!beanOld.getDesc().equals(beanNew.getDesc())) {
+  >             return false;//如果有内容不同，就返回false
+  >         }
+  >         if (beanOld.getPic() != beanNew.getPic()) {
+  >             return false;//如果有内容不同，就返回false
+  >         }
+  >         return true; //默认两个data内容是相同的
+  >     }
+  > 
+  > ```
+  >
+  > 
 
 https://mp.weixin.qq.com/s/auphzaQF6_wJx6dGFY6niA
+
+https://blog.csdn.net/dianzi314779725/article/details/99829585 定向删除问题
+

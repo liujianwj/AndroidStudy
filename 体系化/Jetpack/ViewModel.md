@@ -220,3 +220,11 @@ final void attach(...NonConfigurationInstances lastNonConfigurationInstances,...
 getLastNonConfigurationInstance->mLastNonConfigurationInstances
 ```
 
+
+
+个人总结：
+
+1. ViewModel的作用是生命周期感应，可以在横竖屏切换的时候，数据自动保存，并且在生命周期结束的时候，会自动移除。
+2. ViewModel累本身很简单，只是暴露clear方法，供开发在使用的时候，做一些额外的回收操作，主要的是怎么做到生命周期感应和横竖屏切换时如何保存数据和恢复数据。
+3. 生命周期感应：在基类中存有一个成员变量viewmodelStore，理由有个集合，保存viewmodel。同时在activity创建的时候会向lifecycle中注册监听，当destroy且不是横竖屏切换时，会遍历viewmodelStore中的viewmodel清除。
+4. 横竖屏切换： 而横竖屏切换时，会回调系统方法，onRetainNonConfigurationInstaces方法，里面会将viewmodelStore保存到nonco ngfigrurationinstace中，在系统执行performDestory时，会调用onRetainNonConfigurationInstaces，把它保存在activityClientRecode 中的lastNonConfigurationInstace中。在activity中会实现viewmo delStoreOnwer，实现里面的方法获取viewmo delStore，获取是先从lastNonConfigurationInstace中获取，获取不到再通过反射创建，并添加进viewmo delStore。

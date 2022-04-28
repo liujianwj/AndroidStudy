@@ -310,7 +310,7 @@ public synchronized ExecutorService executorService() {
 
 线程池构造函数的参数含义如下：
 
-**corePoolSize**:指定了线程池中的线程数量，它的数量决定了添加的任务是开辟新的线程去执行，还是放到\**workQueue任务队列中去；*
+**corePoolSize**:指定了线程池中的线程数量，它的数量决定了添加的任务是开辟新的线程去执行，还是放到\**workQueue任务队列中去；*（allowCoreThreadTimeOut（boolean）可以设置核心线程是否回收）
 
 ***maximumPoolSize**:指定了线程池中的最大线程数量，这个参数会根据你使用的\**workQueue任务队列的类型，决定线程池会开辟的最大线程数量；
 
